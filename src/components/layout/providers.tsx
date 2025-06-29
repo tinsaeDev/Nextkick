@@ -1,5 +1,4 @@
 'use client';
-import { useTheme } from 'next-themes';
 import React from 'react';
 import { ActiveThemeProvider } from '../active-theme';
 
@@ -10,8 +9,6 @@ export default function Providers({
   activeThemeValue: string;
   children: React.ReactNode;
 }) {
-  // we need the resolvedTheme value to set the baseTheme for clerk based on the dark or light theme
-  const { resolvedTheme } = useTheme();
 
   return (
     <>

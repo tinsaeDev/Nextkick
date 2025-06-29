@@ -37,7 +37,7 @@ export default function SignUpViewPage({ stars }: { stars: number }) {
           >
             <path d='M15 6v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3V6a3 3 0 1 0-3 3h12a3 3 0 1 0-3-3' />
           </svg>
-          Flash 
+          Flash
         </div>
         <div className='relative z-20 mt-auto'>
           <blockquote className='space-y-2'>
@@ -72,11 +72,6 @@ export default function SignUpViewPage({ stars }: { stars: number }) {
           </Link>
 
           <h1 className='text-3xl font-semibold'>Sign Up</h1>
-          {/* <ClerkSignUpForm
-            initialValues={{
-              emailAddress: 'your_mail+clerk_test@example.com'
-            }}
-          /> */}
           <p className='text-muted-foreground px-8 text-center text-sm'>
             By clicking continue, you agree to our{' '}
             <Link
