@@ -1,0 +1,85 @@
+name: Deploy Portal App to Production
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - apps/portal/**
+
+env:
+  PROJECT_NAME: portal
+  NODE_VERSION: 18
+  REMOTE_USER: tinsae@exbirr.com
+  REMOTE_DIR: /var/www/flash-taxi/portal
+  LOCAL_APP_DIR: apps/portal
+  EXPORT_DIR: out
+
+jobs:
+  build-and-deploy:
+    name: Build and Deploy Portal
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: 🛠️ Set Up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: 📦 Install pnpm
+        run: npm install -g pnpm
+
+      - name: 🧹 Cache Dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pnpm-store
+            ${{ github.workspace }}/${{ env.LOCAL_APP_DIR }}/.next/cache
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+
+      - name: 📦 Install Project Dependencies
+        working-directory: ${{ env.LOCAL_APP_DIR }}
+        run: pnpm install
+
+      # ⚙️ Generate Prisma Client
+      - name: ⚙️ Generate Prisma Client
+        run: pnpm db:generate
+
+      - name: 🔥 Generate Prisma Client
+        run: pnpm --filter @repo/database db:generate
+
+      - name: 🔥 Build Data
+        run: pnpm --filter @repo/data build
+  
+      - name: 🔥 Build DTO
+        run: pnpm --filter @repo/dto build
+
+  
+      - name: 🔥 Build API Types
+        run: pnpm --filter @flash/api tsup
+
+
+
+      - name: 🏗️ Build and Export Portal App
+        working-directory: ${{ env.LOCAL_APP_DIR }}
+        run: pnpm build
+
+      - name: 🔐 Add SSH Host Key
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H exbirr.com >> ~/.ssh/known_hosts
+
+      - name: 🔑 Start SSH Agent and Add Private Key
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: 🚀 Deploy Exported Files via rsync
+        working-directory: ${{ env.LOCAL_APP_DIR }}/${{ env.EXPORT_DIR }}
+        run: |
+          rsync -azr ./ ${{ env.REMOTE_USER }}:${{ env.REMOTE_DIR }}

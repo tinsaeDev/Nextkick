@@ -1,0 +1,26 @@
+model User {
+  id            String     @id @default(cuid())
+  name          String?
+  email         String     @unique
+  phone         String?
+  image         String?
+  emailVerified DateTime?
+  status        UserStatus @default(ACTIVE)
+  Account       Account?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  Session   Session[]
+
+  @@index([email], name: "idx_user_email")
+}
+
+enum UserStatus {
+  ACTIVE // User is active and can use the platform normally.
+  INACTIVE // User has not been active for a while.
+  PENDING // User is waiting for approval or vetting.
+  SUSPENDED // User is temporarily blocked due to issues or violations.
+  BANNED // User is permanently blocked from the platform.
+  DEACTIVATED // User chose to temporarily disable their account.
+}

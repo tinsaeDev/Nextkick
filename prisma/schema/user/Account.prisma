@@ -1,0 +1,32 @@
+model Account {
+    userId    String    @unique
+    deletedAt DateTime?
+
+    id                       String              @id @default(cuid())
+    type                     String
+    provider                 AccountProviderEnum
+    providerAccountId        String
+    refresh_token            String?             @db.Text
+    access_token             String?             @db.Text
+    expires_at               Int?
+    token_type               String?
+    scope                    String?
+    id_token                 String?             @db.Text
+    session_state            String?
+    refresh_token_expires_in Int?
+    user                     User?               @relation(fields: [userId], references: [id])
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@unique([provider, providerAccountId])
+    @@index([userId])
+}
+
+enum AccountProviderEnum {
+    google
+    linkedin
+    link
+    auth0
+}
+

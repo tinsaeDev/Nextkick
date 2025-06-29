@@ -1,0 +1,102 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider      = "prisma-client-js"
+  output        = "../../.dist/prisma"
+  binaryTargets = ["native", "debian-openssl-3.0.x", "rhel-openssl-3.0.x"]
+}
+
+datasource db {
+  provider          = "mysql"
+  url               = env("DATABASE_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
+}
+
+model Account {
+  userId    String    @unique
+  deletedAt DateTime?
+
+  id                       String              @id @default(cuid())
+  type                     String
+  provider                 AccountProviderEnum
+  providerAccountId        String
+  refresh_token            String?             @db.Text
+  access_token             String?             @db.Text
+  expires_at               Int?
+  token_type               String?
+  scope                    String?
+  id_token                 String?             @db.Text
+  session_state            String?
+  refresh_token_expires_in Int?
+  user                     User?               @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+enum AccountProviderEnum {
+  google
+  linkedin
+  link
+  auth0
+}
+
+model User {
+  id    String  @id @default(cuid())
+  name  String?
+  email String  @unique
+  phone String?
+  image String?
+
+  status  UserStatus @default(ACTIVE)
+  Account Account?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  Session   Session[]
+
+  @@index([email], name: "idx_user_email")
+}
+
+enum UserStatus {
+  ACTIVE // User is active and can use the platform normally.
+  INACTIVE // User has not been active for a while.
+  PENDING // User is waiting for approval or vetting.
+  SUSPENDED // User is temporarily blocked due to issues or violations.
+  BANNED // User is permanently blocked from the platform.
+  DEACTIVATED // User chose to temporarily disable their account.
+}
+
+enum RoleSlug {
+  SALES
+  ADMIN
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
